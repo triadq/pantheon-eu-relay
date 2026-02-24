@@ -8,10 +8,14 @@ app.use(cors());
 // Forward all incoming traffic to Binance
 app.use('/', createProxyMiddleware({
   target: 'https://api.binance.com',
-  changeOrigin: true,
+  changeOrigin: true, // This is CRITICAL for CloudFront 403 errors
   onProxyReq: (proxyReq, req, res) => {
-    // 🛡️ WAF BYPASS: Disguise Google Apps Script as a standard API Client
-    proxyReq.setHeader('User-Agent', 'Binance-API-Client/1.0');
+    // 🛡️ API MASQUERADE: Strip Google headers, enforce standard API ID
+    // This tells Binance: "I am a clean, standard program."
+    proxyReq.setHeader('User-Agent', 'Binance/1.0');
+    proxyReq.removeHeader('x-forwarded-for');
+    proxyReq.removeHeader('x-forwarded-proto');
+    proxyReq.removeHeader('x-forwarded-port');
   },
   onProxyRes: function (proxyRes, req, res) {
     proxyRes.headers['Access-Control-Allow-Origin'] = '*';
