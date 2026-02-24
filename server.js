@@ -9,6 +9,10 @@ app.use(cors());
 app.use('/', createProxyMiddleware({
   target: 'https://api.binance.com',
   changeOrigin: true,
+  onProxyReq: (proxyReq, req, res) => {
+    // 🛡️ WAF BYPASS: Disguise Google Apps Script as a standard API Client
+    proxyReq.setHeader('User-Agent', 'Binance-API-Client/1.0');
+  },
   onProxyRes: function (proxyRes, req, res) {
     proxyRes.headers['Access-Control-Allow-Origin'] = '*';
   }
